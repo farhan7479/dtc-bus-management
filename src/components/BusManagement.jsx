@@ -9,8 +9,6 @@ const BusManagement = () => {
   const [capacity, setCapacity] = useState("");
   const [editBusId, setEditBusId] = useState(null);
 
-  
-
   useEffect(() => {
     loadBuses();
   }, []);
@@ -30,8 +28,7 @@ const BusManagement = () => {
     try {
       await axios.post(`${API_BASE_URL}/buses`, { busNumber, capacity });
       loadBuses();  // Reload the buses after adding
-      setBusNumber("");
-      setCapacity("");
+      resetForm();
     } catch (error) {
       console.error("Error adding bus:", error);
     }
@@ -42,17 +39,22 @@ const BusManagement = () => {
     try {
       await axios.put(`${API_BASE_URL}/buses/${editBusId}`, { busNumber, capacity });
       loadBuses();  // Reload the buses after updating
-      setEditBusId(null);
-      setBusNumber("");
-      setCapacity("");
+      resetForm();  // Clear the form after updating
     } catch (error) {
       console.error("Error updating bus:", error);
     }
   };
 
+  // Reset the form fields
+  const resetForm = () => {
+    setBusNumber("");
+    setCapacity("");
+    setEditBusId(null);
+  };
+
   // Edit a bus (set fields for editing)
   const handleEdit = (bus) => {
-    setEditBusId(bus.id);
+    setEditBusId(bus._id);  // Ensure this uses _id (MongoDB default)
     setBusNumber(bus.busNumber);
     setCapacity(bus.capacity);
   };
@@ -104,7 +106,7 @@ const BusManagement = () => {
         </thead>
         <tbody>
           {buses.map((bus) => (
-            <tr key={bus.id} className="border-b">
+            <tr key={bus._id} className="border-b">
               <td className="py-2 px-4">{bus.busNumber}</td>
               <td className="py-2 px-4">{bus.capacity}</td>
               <td className="py-2 px-4">
@@ -115,7 +117,7 @@ const BusManagement = () => {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(bus.id)}
+                  onClick={() => handleDelete(bus._id)}
                   className="bg-red-500 text-white p-1 rounded"
                 >
                   Delete
