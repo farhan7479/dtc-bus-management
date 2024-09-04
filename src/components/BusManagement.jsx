@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const BusManagement = () => {
   const [buses, setBuses] = useState([]);
   const [busNumber, setBusNumber] = useState("");
   const [capacity, setCapacity] = useState("");
   const [editBusId, setEditBusId] = useState(null);
 
-  const API_BASE_URL = "/api";  // Base URL for your backend API
+  
 
   useEffect(() => {
     loadBuses();

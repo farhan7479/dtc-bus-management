@@ -17,7 +17,7 @@ const DutyManagement = () => {
   const [crews, setCrews] = useState([]);
   const [editDutyId, setEditDutyId] = useState(null);
 
-  const API_BASE_URL = "http://localhost:8080/api"; // Base URL for your backend API
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     loadDuties();

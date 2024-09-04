@@ -14,7 +14,7 @@ const RouteManagement = () => {
   const [frequency, setFrequency] = useState(""); // Frequency state
   const [editRouteId, setEditRouteId] = useState(null);
 
-  const API_BASE_URL = "http://localhost:8080/api"; // Base URL for your backend API
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     loadRoutes();
