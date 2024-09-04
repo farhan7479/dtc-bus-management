@@ -7,7 +7,7 @@ const BusManagement = () => {
   const [capacity, setCapacity] = useState("");
   const [editBusId, setEditBusId] = useState(null);
 
-  const API_BASE_URL = "http://localhost:8080/api";  // Base URL for your backend API
+  const API_BASE_URL = "/api";  // Base URL for your backend API
 
   useEffect(() => {
     loadBuses();

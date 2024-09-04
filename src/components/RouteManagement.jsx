@@ -5,16 +5,20 @@ const RouteManagement = () => {
   const [routes, setRoutes] = useState([]);
   const [routeName, setRouteName] = useState("");
   const [stops, setStops] = useState("");
-  const [buses, setBuses] = useState("");
-  const [peakHours, setPeakHours] = useState("");
+  const [selectedBuses, setSelectedBuses] = useState([]);
+  const [allBuses, setAllBuses] = useState([]);
+  const [startPeakHour, setStartPeakHour] = useState(getTodayDateTime());
+  const [endPeakHour, setEndPeakHour] = useState(getTodayDateTime());
   const [trafficData, setTrafficData] = useState("Light");
   const [densityData, setDensityData] = useState("Low");
+  const [frequency, setFrequency] = useState(""); // Frequency state
   const [editRouteId, setEditRouteId] = useState(null);
 
   const API_BASE_URL = "http://localhost:8080/api"; // Base URL for your backend API
 
   useEffect(() => {
     loadRoutes();
+    loadBuses();
   }, []);
 
   // Load all routes
@@ -27,18 +31,48 @@ const RouteManagement = () => {
     }
   };
 
+  // Load all buses
+  const loadBuses = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/buses`);
+      setAllBuses(response.data);
+    } catch (error) {
+      console.error("Error fetching buses:", error);
+    }
+  };
+
+  // Get today's date and time in ISO format
+  function getTodayDateTime() {
+    const now = new Date();
+    now.setSeconds(0, 0); // Reset seconds and milliseconds
+    return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+  }
+
+  // Handle multiple bus selection
+  const handleBusSelection = (e) => {
+    const options = e.target.options;
+    const selectedValues = [];
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].selected) {
+        selectedValues.push(options[i].value);
+      }
+    }
+    setSelectedBuses(selectedValues);
+  };
+
   // Add a new route
   const handleAddRoute = async () => {
     try {
       await axios.post(`${API_BASE_URL}/routes`, {
         routeName,
-        stops: stops.split(',').map(stop => stop.trim()), // Convert comma-separated string to array
-        buses: buses.split(',').map(bus => bus.trim()), // Convert comma-separated string to array
-        peakHours: JSON.parse(peakHours),
+        stops: stops.split(",").map((stop) => stop.trim()), // Convert comma-separated string to array
+        buses: selectedBuses,
+        peakHours: [{ start: startPeakHour, end: endPeakHour, frequency}],
         trafficData,
-        densityData
+        densityData,
+        // Include frequency here
       });
-      loadRoutes();  // Reload the routes after adding
+      loadRoutes(); // Reload the routes after adding
       resetFields();
     } catch (error) {
       console.error("Error adding route:", error);
@@ -50,13 +84,14 @@ const RouteManagement = () => {
     try {
       await axios.put(`${API_BASE_URL}/routes/${editRouteId}`, {
         routeName,
-        stops: stops.split(',').map(stop => stop.trim()), // Convert comma-separated string to array
-        buses: buses.split(',').map(bus => bus.trim()), // Convert comma-separated string to array
-        peakHours: JSON.parse(peakHours),
+        stops: stops.split(",").map((stop) => stop.trim()), // Convert comma-separated string to array
+        buses: selectedBuses,
+        peakHours: [{ start: startPeakHour, end: endPeakHour }],
         trafficData,
-        densityData
+        densityData,
+        frequency // Include frequency here
       });
-      loadRoutes();  // Reload the routes after updating
+      loadRoutes(); // Reload the routes after updating
       resetFields();
     } catch (error) {
       console.error("Error updating route:", error);
@@ -67,18 +102,20 @@ const RouteManagement = () => {
   const handleEdit = (route) => {
     setEditRouteId(route._id);
     setRouteName(route.routeName);
-    setStops(route.stops.join(', ')); // Convert array to comma-separated string
-    setBuses(route.buses.join(', ')); // Convert array to comma-separated string
-    setPeakHours(JSON.stringify(route.peakHours));
+    setStops(route.stops.join(", ")); // Convert array to comma-separated string
+    setSelectedBuses(route.buses); // Set selected buses
+    setStartPeakHour(route.peakHours[0]?.start || getTodayDateTime());
+    setEndPeakHour(route.peakHours[0]?.end || getTodayDateTime());
     setTrafficData(route.trafficData);
     setDensityData(route.densityData);
+    setFrequency(route.frequency || ""); // Set frequency
   };
 
   // Delete a route
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API_BASE_URL}/routes/${id}`);
-      loadRoutes();  // Reload the routes after deleting
+      loadRoutes(); // Reload the routes after deleting
     } catch (error) {
       console.error("Error deleting route:", error);
     }
@@ -88,10 +125,12 @@ const RouteManagement = () => {
   const resetFields = () => {
     setRouteName("");
     setStops("");
-    setBuses("");
-    setPeakHours("");
+    setSelectedBuses([]);
+    setStartPeakHour(getTodayDateTime());
+    setEndPeakHour(getTodayDateTime());
     setTrafficData("Light");
     setDensityData("Low");
+    setFrequency(""); // Reset frequency
     setEditRouteId(null);
   };
 
@@ -114,17 +153,52 @@ const RouteManagement = () => {
           onChange={(e) => setStops(e.target.value)}
           className="mb-2 p-2 border rounded"
         />
+        <div className="mb-2">
+          <select
+            multiple
+            value={selectedBuses}
+            onChange={handleBusSelection}
+            className="p-2 border rounded"
+          >
+            {allBuses.map((bus) => (
+              <option key={bus._id} value={bus._id}>
+                {bus.busNumber}
+              </option>
+            ))}
+          </select>
+          <div className="mt-2">
+            <h4 className="font-bold">Selected Buses:</h4>
+            <ul>
+              {selectedBuses.map((busId) => {
+                const bus = allBuses.find((b) => b._id === busId);
+                return (
+                  bus && (
+                    <li key={bus._id} className="mb-1 p-1 border rounded">
+                      {bus.busNumber}
+                    </li>
+                  )
+                );
+              })}
+            </ul>
+          </div>
+        </div>
         <input
-          type="text"
-          placeholder="Buses (comma-separated)"
-          value={buses}
-          onChange={(e) => setBuses(e.target.value)}
+          type="datetime-local"
+          value={startPeakHour}
+          onChange={(e) => setStartPeakHour(e.target.value)}
           className="mb-2 p-2 border rounded"
         />
-        <textarea
-          placeholder='Peak Hours (JSON format, e.g. [{"start":"2024-01-01T08:00:00Z","end":"2024-01-01T10:00:00Z","frequency":30}])'
-          value={peakHours}
-          onChange={(e) => setPeakHours(e.target.value)}
+        <input
+          type="datetime-local"
+          value={endPeakHour}
+          onChange={(e) => setEndPeakHour(e.target.value)}
+          className="mb-2 p-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Frequency"
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value)}
           className="mb-2 p-2 border rounded"
         />
         <select
@@ -162,6 +236,7 @@ const RouteManagement = () => {
             <th className="py-2 px-4 border-b">Peak Hours</th>
             <th className="py-2 px-4 border-b">Traffic Data</th>
             <th className="py-2 px-4 border-b">Density Data</th>
+            <th className="py-2 px-4 border-b">Frequency</th> {/* Added Frequency column */}
             <th className="py-2 px-4 border-b">Actions</th>
           </tr>
         </thead>
@@ -169,11 +244,21 @@ const RouteManagement = () => {
           {routes.map((route) => (
             <tr key={route._id} className="border-b">
               <td className="py-2 px-4">{route.routeName}</td>
-              <td className="py-2 px-4">{route.stops.join(', ')}</td>
-              <td className="py-2 px-4">{route.buses.join(', ')}</td>
-              <td className="py-2 px-4">{JSON.stringify(route.peakHours)}</td>
+              <td className="py-2 px-4">{route.stops.join(", ")}</td>
+              <td className="py-2 px-4">
+                {route.buses.map((bus) => bus.busNumber).join(", ")}
+              </td>
+              <td className="py-2 px-4">
+                {route.peakHours.map((ph, index) => (
+                  <div key={index}>
+                    {new Date(ph.start).toLocaleTimeString()} -{" "}
+                    {new Date(ph.end).toLocaleTimeString()}
+                  </div>
+                ))}
+              </td>
               <td className="py-2 px-4">{route.trafficData}</td>
               <td className="py-2 px-4">{route.densityData}</td>
+              <td className="py-2 px-4">{route.frequency}</td> {/* Display Frequency */}
               <td className="py-2 px-4">
                 <button
                   onClick={() => handleEdit(route)}
