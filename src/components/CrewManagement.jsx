@@ -120,16 +120,18 @@ const CrewManagement = () => {
                 {crew?.assignedBus?.busNumber || "No Bus Assigned"}
               </td>
               <td className="py-2 px-4">{crew?.shiftHours}</td>
-              <td className="py-2 px-4">
+              <td className="py-2 px-4 flex space-x-2">
+                {/* Edit button */}
                 <button
                   onClick={() => handleEdit(crew)}
-                  className="bg-yellow-500 text-white p-1 rounded mr-2"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition"
                 >
                   Edit
                 </button>
+                {/* Delete button */}
                 <button
-                  onClick={() => handleDelete(crew?._id)}
-                  className="bg-red-500 text-white p-1 rounded"
+                  onClick={() => handleDelete(crew._id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
                 >
                   Delete
                 </button>

@@ -142,7 +142,7 @@ const RouteManagement = () => {
         onClick={() => setShowForm((prev) => !prev)}
         className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
       >
-        {showForm ? "Hide Duty Form" : "Assign New Duty"}
+        {showForm ? "Hide Route Form" : "Assign New Route"}
       </button>
       {showForm && (
         <div className="flex flex-col mb-4">
@@ -271,16 +271,18 @@ const RouteManagement = () => {
                 {route?.peakHours[0]?.frequency}
               </td>{" "}
               {/* Display Frequency */}
-              <td className="py-2 px-4">
+              <td className="py-2 px-4 flex space-x-2">
+                {/* Edit button */}
                 <button
                   onClick={() => handleEdit(route)}
-                  className="bg-yellow-500 text-white p-1 rounded mr-2"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition"
                 >
                   Edit
                 </button>
+                {/* Delete button */}
                 <button
                   onClick={() => handleDelete(route._id)}
-                  className="bg-red-500 text-white p-1 rounded"
+                  className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
                 >
                   Delete
                 </button>
