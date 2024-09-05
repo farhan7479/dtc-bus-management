@@ -16,6 +16,7 @@ const DutyManagement = () => {
   const [buses, setBuses] = useState([]);
   const [crews, setCrews] = useState([]);
   const [editDutyId, setEditDutyId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -58,8 +59,8 @@ const DutyManagement = () => {
   // Format date and time as ISO string
   const formatDateTimeToISO = (date, time) => {
     if (!date || !time) return "";
-    const [hours, minutes] = time.split(':').map(Number);
-    const [year, month, day] = date.split('-').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
+    const [year, month, day] = date.split("-").map(Number);
     const formattedDate = new Date(year, month - 1, day, hours, minutes);
     return formattedDate.toISOString();
   };
@@ -76,7 +77,7 @@ const DutyManagement = () => {
         endTime: formatDateTimeToISO(endDate, endTime),
         restPeriod,
       });
-      loadDuties();  // Reload the duties after adding
+      loadDuties(); // Reload the duties after adding
       setDutyName("");
       setDutyDetails("");
       setBusId("");
@@ -104,7 +105,7 @@ const DutyManagement = () => {
         endTime: formatDateTimeToISO(endDate, endTime),
         restPeriod,
       });
-      loadDuties();  // Reload the duties after updating
+      loadDuties(); // Reload the duties after updating
       setEditDutyId(null);
       setDutyName("");
       setDutyDetails("");
@@ -136,13 +137,14 @@ const DutyManagement = () => {
     setEndDate(endDateTime.toISOString().slice(0, 10)); // Format to YYYY-MM-DD
     setEndTime(endDateTime.toISOString().slice(11, 16)); // Format to HH:mm
     setRestPeriod(duty.restPeriod);
+    setShowForm(true);
   };
 
   // Delete a duty
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API_BASE_URL}/duties/${id}`);
-      loadDuties();  // Reload the duties after deleting
+      loadDuties(); // Reload the duties after deleting
     } catch (error) {
       console.error("Error deleting duty:", error);
     }
@@ -151,8 +153,14 @@ const DutyManagement = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Duty Management</h2>
+      <button
+        onClick={() => setShowForm((prev) => !prev)}
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+      >
+        {showForm ? "Hide Duty Form" : "Assign New Duty"}
+      </button>
 
-      <div className="flex flex-col mb-4">
+      {showForm && <div className="flex flex-col mb-4">
         <input
           type="text"
           placeholder="Duty Name"
@@ -235,7 +243,7 @@ const DutyManagement = () => {
         >
           {editDutyId ? "Update Duty" : "Add Duty"}
         </button>
-      </div>
+      </div>}
 
       <table className="min-w-full">
         <thead className="bg-gray-500">
@@ -260,27 +268,37 @@ const DutyManagement = () => {
               <td className="py-2 px-4">{duty.dutyType}</td>
               <td className="py-2 px-4">
                 {new Date(duty.startTime).toLocaleString([], {
-                  year: 'numeric', month: '2-digit', day: '2-digit',
-                  hour: '2-digit', minute: '2-digit', hour12: false
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
                 })}
               </td>
               <td className="py-2 px-4">
                 {new Date(duty.endTime).toLocaleString([], {
-                  year: 'numeric', month: '2-digit', day: '2-digit',
-                  hour: '2-digit', minute: '2-digit', hour12: false
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
                 })}
               </td>
               <td className="py-2 px-4">{duty.restPeriod} minutes</td>
-              <td className="py-2 px-4">
+              <td className="py-2 px-4 flex space-x-2">
+                {/* Edit button */}
                 <button
                   onClick={() => handleEdit(duty)}
-                  className="bg-yellow-500 text-white p-1 rounded mr-2"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition"
                 >
                   Edit
                 </button>
+                {/* Delete button */}
                 <button
                   onClick={() => handleDelete(duty._id)}
-                  className="bg-red-500 text-white p-1 rounded"
+                  className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
                 >
                   Delete
                 </button>

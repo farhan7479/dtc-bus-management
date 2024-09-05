@@ -13,6 +13,7 @@ const RouteManagement = () => {
   const [densityData, setDensityData] = useState("Low");
   const [frequency, setFrequency] = useState(""); // Frequency state
   const [editRouteId, setEditRouteId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -67,7 +68,7 @@ const RouteManagement = () => {
         routeName,
         stops: stops.split(",").map((stop) => stop.trim()), // Convert comma-separated string to array
         buses: selectedBuses,
-        peakHours: [{ start: startPeakHour, end: endPeakHour, frequency}],
+        peakHours: [{ start: startPeakHour, end: endPeakHour, frequency }],
         trafficData,
         densityData,
         // Include frequency here
@@ -86,10 +87,9 @@ const RouteManagement = () => {
         routeName,
         stops: stops.split(",").map((stop) => stop.trim()), // Convert comma-separated string to array
         buses: selectedBuses,
-        peakHours: [{ start: startPeakHour, end: endPeakHour }],
+        peakHours: [{ start: startPeakHour, end: endPeakHour, frequency }],
         trafficData,
         densityData,
-        frequency // Include frequency here
       });
       loadRoutes(); // Reload the routes after updating
       resetFields();
@@ -109,6 +109,7 @@ const RouteManagement = () => {
     setTrafficData(route.trafficData);
     setDensityData(route.densityData);
     setFrequency(route.frequency || ""); // Set frequency
+    setShowForm(true);
   };
 
   // Delete a route
@@ -137,95 +138,102 @@ const RouteManagement = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Route Management</h2>
-
-      <div className="flex flex-col mb-4">
-        <input
-          type="text"
-          placeholder="Route Name"
-          value={routeName}
-          onChange={(e) => setRouteName(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        />
-        <input
-          type="text"
-          placeholder="Stops (comma-separated)"
-          value={stops}
-          onChange={(e) => setStops(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        />
-        <div className="mb-2">
-          <select
-            multiple
-            value={selectedBuses}
-            onChange={handleBusSelection}
-            className="p-2 border rounded"
-          >
-            {allBuses.map((bus) => (
-              <option key={bus._id} value={bus._id}>
-                {bus.busNumber}
-              </option>
-            ))}
-          </select>
-          <div className="mt-2">
-            <h4 className="font-bold">Selected Buses:</h4>
-            <ul>
-              {selectedBuses.map((busId) => {
-                const bus = allBuses.find((b) => b._id === busId);
-                return (
-                  bus && (
-                    <li key={bus._id} className="mb-1 p-1 border rounded">
-                      {bus.busNumber}
-                    </li>
-                  )
-                );
-              })}
-            </ul>
+      <button
+        onClick={() => setShowForm((prev) => !prev)}
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+      >
+        {showForm ? "Hide Duty Form" : "Assign New Duty"}
+      </button>
+      {showForm && (
+        <div className="flex flex-col mb-4">
+          <input
+            type="text"
+            placeholder="Route Name"
+            value={routeName}
+            onChange={(e) => setRouteName(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Stops (comma-separated)"
+            value={stops}
+            onChange={(e) => setStops(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          />
+          <div className="mb-2">
+            <select
+              multiple
+              value={selectedBuses}
+              onChange={handleBusSelection}
+              className="p-3 border rounded w-50 h-23 overflow-y-scroll"
+            >
+              {allBuses.map((bus) => (
+                <option key={bus._id} value={bus._id}>
+                  {bus.busNumber}
+                </option>
+              ))}
+            </select>
+            <div className="mt-4">
+              <h4 className="font-bold">Selected Buses:</h4>
+              <ul>
+                {selectedBuses.map((busId) => {
+                  const bus = allBuses.find((b) => b._id === busId);
+                  return (
+                    bus && (
+                      <li key={bus._id} className="mb-1 p-1 border rounded">
+                        {bus.busNumber}
+                      </li>
+                    )
+                  );
+                })}
+              </ul>
+            </div>
           </div>
+          <input
+            type="datetime-local"
+            value={startPeakHour}
+            onChange={(e) => setStartPeakHour(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          />
+          <input
+            type="datetime-local"
+            value={endPeakHour}
+            onChange={(e) => setEndPeakHour(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          />
+          <select
+            value={trafficData}
+            onChange={(e) => setTrafficData(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          >
+            <option value="Light">Light</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Heavy">Heavy</option>
+          </select>
+          <select
+            value={densityData}
+            onChange={(e) => setDensityData(e.target.value)}
+            className="mb-2 p-2 border rounded"
+          >
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <button
+            onClick={editRouteId ? handleUpdateRoute : handleAddRoute}
+            className="bg-blue-500 text-white p-2 rounded"
+          >
+            {editRouteId ? "Update Route" : "Add Route"}
+          </button>
         </div>
-        <input
-          type="datetime-local"
-          value={startPeakHour}
-          onChange={(e) => setStartPeakHour(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        />
-        <input
-          type="datetime-local"
-          value={endPeakHour}
-          onChange={(e) => setEndPeakHour(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        />
-        <input
-          type="text"
-          placeholder="Frequency"
-          value={frequency}
-          onChange={(e) => setFrequency(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        />
-        <select
-          value={trafficData}
-          onChange={(e) => setTrafficData(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        >
-          <option value="Light">Light</option>
-          <option value="Moderate">Moderate</option>
-          <option value="Heavy">Heavy</option>
-        </select>
-        <select
-          value={densityData}
-          onChange={(e) => setDensityData(e.target.value)}
-          className="mb-2 p-2 border rounded"
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-        <button
-          onClick={editRouteId ? handleUpdateRoute : handleAddRoute}
-          className="bg-blue-500 text-white p-2 rounded"
-        >
-          {editRouteId ? "Update Route" : "Add Route"}
-        </button>
-      </div>
+      )}
 
       <table className="min-w-full">
         <thead className="bg-gray-500">
@@ -236,7 +244,8 @@ const RouteManagement = () => {
             <th className="py-2 px-4 border-b">Peak Hours</th>
             <th className="py-2 px-4 border-b">Traffic Data</th>
             <th className="py-2 px-4 border-b">Density Data</th>
-            <th className="py-2 px-4 border-b">Frequency</th> {/* Added Frequency column */}
+            <th className="py-2 px-4 border-b">Frequency</th>{" "}
+            {/* Added Frequency column */}
             <th className="py-2 px-4 border-b">Actions</th>
           </tr>
         </thead>
@@ -258,7 +267,10 @@ const RouteManagement = () => {
               </td>
               <td className="py-2 px-4">{route.trafficData}</td>
               <td className="py-2 px-4">{route.densityData}</td>
-              <td className="py-2 px-4">{route.frequency}</td> {/* Display Frequency */}
+              <td className="py-2 px-4">
+                {route?.peakHours[0]?.frequency}
+              </td>{" "}
+              {/* Display Frequency */}
               <td className="py-2 px-4">
                 <button
                   onClick={() => handleEdit(route)}
